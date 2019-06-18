@@ -24,7 +24,7 @@ def build_logger(log_name):
 logger = build_logger("RL_controller")
 
 
-def build_controller(ControllerClass, batch_size):
+def build_controller(ControllerClass):
     controller_model = ControllerClass(
         search_for=FLAGS.search_for,
         search_whole_channels=FLAGS.controller_search_whole_channels,
@@ -50,8 +50,7 @@ def build_controller(ControllerClass, batch_size):
         optim_algo="adam",
         sync_replicas=FLAGS.controller_sync_replicas,
         num_aggregate=FLAGS.controller_num_aggregate,
-        num_replicas=FLAGS.controller_num_replicas,
-        batch_size=batch_size)
+        num_replicas=FLAGS.controller_num_replicas)
 
     return controller_model
 
@@ -82,13 +81,11 @@ def get_controller_ops(controller_model):
 
 class RLTuner(Tuner):
 
-    def __init__(self, batch_size):
-        self.total_steps = batch_size
-        logger.debug("batch_size:\t"+str(batch_size))
+    def __init__(self, child_steps, controller_steps):
 
-        ControllerClass = GeneralController
-        self.controller_model = build_controller(
-            ControllerClass, self.total_steps)
+        self.child_steps = child_steps
+        self.controller_steps = controller_steps
+        self.controller_model = build_controller(GeneralController)
 
         self.graph = tf.Graph()
 
@@ -110,56 +107,14 @@ class RLTuner(Tuner):
         logger.debug('initlize controller_model done.')
 
         self.epoch = 0
-        self.credit = 0
-        self.parameter_id2pos = {}
-        self.failed_trial_pos = []
-        self.generate_one_epoch_parameters()
+        self.pos = 0
 
-    def generate_one_epoch_parameters(self):
-        # Generate architectures in one epoch and
-        # store them to self.child_arc
-        self.bucket = [i for i in range(self.total_steps)]
-        self.num_completed_jobs = 0
-        self.parameter_id2pos = dict()
-        self.child_arc = self.sess.run(self.controller_model.sample_arc)
-        print(self.child_arc)
-        self.epoch = self.epoch + 1
-
-    def generate_multiple_parameters(self, parameter_id_list):
-        result = []
-        for idx, parameter_id in enumerate(parameter_id_list):
-            try:
-                logger.debug("generating param for %s", parameter_id)
-                if self.failed_trial_pos:
-                    pos = self.failed_trial_pos.pop()
-                    res = self.generate_parameters(parameter_id, pos=pos)
-                else:
-                    res = self.generate_parameters(parameter_id)
-                    if self.credit > 0:
-                        self.credit -= 1
-            except nni.NoMoreTrialError:
-                self.credit += len(parameter_id_list) - idx - 1
-                return result
-            result.append(res)
-        return result
-
-    def generate_parameters(self, parameter_id, trial_job_id=None, pos=None):
-        if pos is None:
-            if not self.bucket:
-                if self.num_completed_jobs < self.total_steps:
-                    raise nni.NoMoreTrialError('no more parameters now.')
-                else:
-                    self.generate_one_epoch_parameters()
-            pos = self.bucket.pop()
-        logger.info('current bucket: %s', self.bucket)
-        logger.info('current pos: %s', pos)
-        self.parameter_id2pos[parameter_id] = pos
-        current_arc_code = self.child_arc[pos]
+    def generate_parameters(self, parameter_id, trial_job_id=None):
+        current_arc_code = self.get_controller_arc_macro(1)
         start_idx = 0
-        current_config = dict()
-
-        def onehot2list(l): return [idx for idx,
-                                    val in enumerate(l) if val == 1]
+        current_config = {
+            self.choice_key: 'train' if self.pos < self.child_steps else 'validate'
+        }
         for layer_id, (layer_name, info) in enumerate(self.search_space):
             mutable_block = info['mutable_block']
             if mutable_block not in current_config:
@@ -170,21 +125,20 @@ class RLTuner(Tuner):
             else:
                 input_start = start_idx
             inputs_idxs = current_arc_code[input_start: input_start + layer_id]
-            inputs_idxs = onehot2list(inputs_idxs)
+            inputs_idxs = [idx for idx, val in enumerate(inputs_idxs) if val == 1]
             current_config[mutable_block][layer_name] = dict()
             current_config[mutable_block][layer_name]['chosen_layer'] = info['layer_choice'][layer_choice_idx]
             current_config[mutable_block][layer_name]['chosen_inputs'] = [
                 info['optional_inputs'][ipi] for ipi in inputs_idxs]
             start_idx += 1 + layer_id
+        # update pos and epoch
+        self.pos = (self.pos + 1) % (self.child_steps + self.controller_steps)
+        self.epoch += int(self.pos == 0)
 
         return current_config
 
-    def controller_one_step(self, epoch, valid_acc_arr, cur_pos):
+    def controller_one_step(self, epoch, valid_acc_arr):
         logger.debug("Epoch %s: Training controller", epoch)
-        logger.debug("cur_pos %s: Training controller", cur_pos)
-        mask = [1 if i == cur_pos else 0 for i in range(self.total_steps)]
-        print(self.parameter_id2pos)
-        print(mask)
         run_ops = [
             self.controller_ops["loss"],
             self.controller_ops["entropy"],
@@ -197,8 +151,7 @@ class RLTuner(Tuner):
         ]
 
         loss, entropy, lr, gn, val_acc, bl, _, _ = self.sess.run(run_ops, feed_dict={
-            self.controller_model.valid_acc: valid_acc_arr,
-            self.controller_model.mask: mask})
+            self.controller_model.valid_acc: valid_acc_arr})
 
         controller_step = self.sess.run(self.controller_ops["train_step"])
 
@@ -216,31 +169,18 @@ class RLTuner(Tuner):
 
     def receive_trial_result(self, parameter_id, parameters, reward):
         logger.debug("epoch:\t"+str(self.epoch))
+        logger.debug("pos:\t"+str(self.pos))
         logger.debug(parameter_id)
-        logger.debug(self.child_arc[self.parameter_id2pos[parameter_id]])
         logger.debug(reward)
-        self.num_completed_jobs += 1
-        self.controller_one_step(
-            self.epoch, reward, self.parameter_id2pos[parameter_id])
-        if self.num_completed_jobs == self.total_steps:
-            logger.debug('EPOCH DONE!')
-            self.generate_one_epoch_parameters()
-            self.new_trial_jobs(self.credit)
-
-    def trial_end(self, parameter_id, success):
-        """Invoked when a trial is completed or terminated. Do nothing by default.
-        parameter_id: int
-        success: True if the trial successfully completed; False if failed or terminated.
-        """
-        if not success:
-            self.failed_trial_pos.append(self.parameter_id2pos[parameter_id])
-            self.new_trial_jobs(1)
+        if self.pos > self.child_steps:
+            self.controller_one_step(self.epoch, reward)
 
     def update_search_space(self, data):
         # Extract choice
         choice_key = list(
             filter(lambda k: k.strip().endswith('choice'), list(data)))
         if len(choice_key) > 0:
+            self.choice_key = choice_key
             data.pop(choice_key[0])
         # Sort layers and generate search space
         self.search_space = []

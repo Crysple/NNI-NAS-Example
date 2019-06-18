@@ -172,9 +172,9 @@ class GeneralChild(Model):
                         inp_h = inputs.get_shape()[2].value
                         inp_w = inputs.get_shape()[3].value
                         out.set_shape([None, out_filters, inp_h, inp_w])
-                    optional_inputs.append(out)
-                    pout = tf.add_n(optional_inputs)
-                    out = batch_norm(pout, is_training,
+                    if optional_inputs:
+                        out = tf.add_n([out, tf.reduce_sum(optional_inputs, axis=0)])
+                    out = batch_norm(out, is_training,
                                      data_format=self.data_format)
                 layers.append(out)
                 return out
@@ -265,7 +265,8 @@ class GeneralChild(Model):
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out],
                 optional_input_size: 1,
                 layer_output: layer_3_out
-            }
+            },
+            mode = 'oneshot-tensorflow'
             )"""
             layers, out_filters = add_fixed_pooling_layer(
                 3, layers, out_filters, is_training)
@@ -298,7 +299,8 @@ class GeneralChild(Model):
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out],
                 optional_input_size: 1,
                 layer_output: layer_7_out
-            }
+            },
+            mode = 'oneshot-tensorflow'
             )"""
             layers, out_filters = add_fixed_pooling_layer(
                 7, layers, out_filters, is_training)
@@ -332,7 +334,8 @@ class GeneralChild(Model):
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out, layer_8_out, layer_9_out, layer_10_out],
                 optional_input_size: 1,
                 layer_output: layer_11_out
-            }
+            },
+            mode = 'oneshot-tensorflow'
             )"""
 
             x = global_avg_pool(layer_11_out, data_format=self.data_format)

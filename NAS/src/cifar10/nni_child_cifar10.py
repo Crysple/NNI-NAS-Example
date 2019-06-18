@@ -126,19 +126,23 @@ class NASTrial():
             logger.debug(log_string)
         return loss, global_step
 
-    def run(self):
-        '''Run this model according to the `epoch` set in FALGS'''
-        max_acc = 0
-        while True:
-            _, global_step = self.run_one_step()
-            if global_step % self.child_ops['num_train_batches'] == 0:
-                acc = self.child_ops["eval_func"](
-                    self.sess, "test", self.child_model)
-                max_acc = max(max_acc, acc)
-                '''@nni.report_intermediate_result(acc)'''
-            if global_step / self.child_ops['num_train_batches'] >= FLAGS.num_epochs:
-                '''@nni.report_final_result(max_acc)'''
-                break
+    def get_csvaa(self):
+        cur_valid_acc = self.sess.run(self.child_model.cur_valid_acc)
+        return cur_valid_acc
+
+    def run(self, num):
+        for _ in range(num):
+            """@nni.get_next_parameter(tf, self.sess)"""
+            """@nni.variable(nni.choice('train', 'validate'), name=entry)"""
+            entry = 'trian'
+            if entry == 'train':
+                loss, _ = self.run_one_step()
+                '''@nni.report_final_result(loss)'''
+            elif entry == 'validate':
+                valid_acc_arr = self.get_csvaa()
+                '''@nni.report_final_result(valid_acc_arr)'''
+            else:
+                raise RuntimeError('No such entry: ' + entry)
 
 
 def main(_):
@@ -156,7 +160,7 @@ def main(_):
     logger.debug("-" * 80)
     trial = NASTrial()
 
-    trial.run()
+    trial.run(400*FLAG.num_epochs)
 
 
 if __name__ == "__main__":

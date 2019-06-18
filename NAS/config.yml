@@ -2,7 +2,7 @@ authorName: Unknown
 experimentName: enas_macro
 trialConcurrency: 1
 maxExecDuration: 24h
-maxTrialNum: 2
+maxTrialNum: 1
 #choice: local, remote
 trainingServicePlatform: local
 #choice: true, false
@@ -13,7 +13,8 @@ tuner:
   classFileName: nni_controller_cifar10.py
   className: RLTuner
   classArgs:
-    batch_size: 1
+    child_steps: 350
+    controller_steps: 50
 
 trial:
   command: sh ./macro_cifar10.sh
