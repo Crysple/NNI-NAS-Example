@@ -225,16 +225,6 @@ class RLTuner(Tuner):
         if self.num_completed_jobs == self.total_steps:
             logger.debug('EPOCH DONE!')
             self.generate_one_epoch_parameters()
-            self.new_trial_jobs(self.credit)
-
-    def trial_end(self, parameter_id, success):
-        """Invoked when a trial is completed or terminated. Do nothing by default.
-        parameter_id: int
-        success: True if the trial successfully completed; False if failed or terminated.
-        """
-        if not success:
-            self.failed_trial_pos.append(self.parameter_id2pos[parameter_id])
-            self.new_trial_jobs(1)
 
     def update_search_space(self, data):
         # Extract choice
