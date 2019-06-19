@@ -127,8 +127,8 @@ class NASTrial():
         return loss, global_step
 
     def get_csvaa(self):
-        cur_valid_acc = self.sess.run(self.child_model.cur_valid_acc)
-        return cur_valid_acc
+        valid_acc = self.sess.run(self.child_model.valid_acc)
+        return valid_acc
 
     def run(self, num):
         for _ in range(num):
