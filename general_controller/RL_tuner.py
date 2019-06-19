@@ -3,10 +3,12 @@ from __future__ import division
 from __future__ import print_function
 
 import logging
+import os
+os.environ['CUDA_VISIBLE_DEVICES']=''
 import tensorflow as tf
 import nni
-from nni.tuner import Tuner
 from src.utils import Logger
+from nni.multi_phase.multi_phase_tuner import MultiPhaseTuner
 from src.general_controller import GeneralController
 from src.tf_flags import *
 from collections import OrderedDict
@@ -79,7 +81,7 @@ def get_controller_ops(controller_model):
     return controller_ops
 
 
-class RLTuner(Tuner):
+class RLTuner(MultiPhaseTuner):
 
     def __init__(self, child_steps, controller_steps):
 
@@ -167,7 +169,7 @@ class RLTuner(Tuner):
         logger.debug(log_string)
         return
 
-    def receive_trial_result(self, parameter_id, parameters, reward):
+    def receive_trial_result(self, parameter_id, parameters, reward, trial_job_id):
         logger.debug("epoch:\t"+str(self.epoch))
         logger.debug("pos:\t"+str(self.pos))
         logger.debug(parameter_id)

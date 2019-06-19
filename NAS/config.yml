@@ -7,10 +7,10 @@ maxTrialNum: 1
 trainingServicePlatform: local
 #choice: true, false
 useAnnotation: true
-multiPhase: false
+multiPhase: true
 tuner:
-  codeDir: ../../tuners/general_controller
-  classFileName: nni_controller_cifar10.py
+  codeDir: ../general_controller
+  classFileName: RL_tuner.py
   className: RLTuner
   classArgs:
     child_steps: 350

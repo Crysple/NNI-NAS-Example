@@ -37,7 +37,7 @@ def create_bias(name, shape, initializer=None):
     return tf.get_variable(name, shape, initializer=initializer)
 
 
-def conv_op(self, inputs, filter_size, is_training, count, out_filters,
+def conv_op(inputs, filter_size, is_training, count, out_filters,
                      data_format, ch_mul=1, start_idx=None, separable=False):
     """
     Args:
@@ -111,7 +111,7 @@ def conv_op(self, inputs, filter_size, is_training, count, out_filters,
         x = tf.nn.relu(x)
     return x
 
-def pool_op(self, inputs, is_training, count, out_filters, avg_or_max, data_format, start_idx=None):
+def pool_op(inputs, is_training, count, out_filters, avg_or_max, data_format, start_idx=None):
     """
     Args:
         start_idx: where to start taking the output channels. if None, assuming
