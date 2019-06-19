@@ -266,7 +266,7 @@ class GeneralChild(Model):
                 optional_input_size: 1,
                 layer_output: layer_3_out
             },
-            mode = 'oneshot-tensorflow'
+            mode = 'oneshot-tf'
             )"""
             layers, out_filters = add_fixed_pooling_layer(
                 3, layers, out_filters, is_training)
@@ -300,7 +300,7 @@ class GeneralChild(Model):
                 optional_input_size: 1,
                 layer_output: layer_7_out
             },
-            mode = 'oneshot-tensorflow'
+            mode = 'oneshot-tf'
             )"""
             layers, out_filters = add_fixed_pooling_layer(
                 7, layers, out_filters, is_training)
@@ -335,7 +335,7 @@ class GeneralChild(Model):
                 optional_input_size: 1,
                 layer_output: layer_11_out
             },
-            mode = 'oneshot-tensorflow'
+            mode = 'oneshot-tf'
             )"""
 
             x = global_avg_pool(layer_11_out, data_format=self.data_format)
