@@ -81,8 +81,6 @@ class GeneralChild(Model):
         pool_distance = self.num_layers // 3
         self.pool_layers = [pool_distance - 1, 2 * pool_distance - 1]
 
-
-
     def _factorized_reduction(self, x, out_filters, stride, is_training):
         """Reduces the shape of x without information loss due to striding."""
         assert out_filters % 2 == 0, (
@@ -173,7 +171,8 @@ class GeneralChild(Model):
                         inp_w = inputs.get_shape()[3].value
                         out.set_shape([None, out_filters, inp_h, inp_w])
                     try:
-                        out = tf.add_n([out, tf.reduce_sum(optional_inputs, axis=0)])
+                        out = tf.add_n(
+                            [out, tf.reduce_sum(optional_inputs, axis=0)])
                     except Exception as e:
                         print(e)
                     out = batch_norm(out, is_training,
@@ -355,8 +354,8 @@ class GeneralChild(Model):
                 x = tf.matmul(x, w)
         return x
 
-
     # override
+
     def _build_train(self):
         print("-" * 80)
         print("Build train graph")
@@ -424,6 +423,47 @@ class GeneralChild(Model):
         self.test_acc = tf.to_int32(self.test_acc)
         self.test_acc = tf.reduce_sum(self.test_acc)
 
+    # override
+    def build_valid_rl(self, shuffle=False):
+        print("-" * 80)
+        print("Build valid graph on shuffled data")
+        with tf.device("/cpu:0"):
+            # shuffled valid data: for choosing validation model
+            if not shuffle and self.data_format == "NCHW":
+                self.images["valid_original"] = np.transpose(
+                    self.images["valid_original"], [0, 3, 1, 2])
+            x_valid_shuffle, y_valid_shuffle = tf.train.shuffle_batch(
+                [self.images["valid_original"], self.labels["valid_original"]],
+                batch_size=self.batch_size,
+                capacity=25000,
+                enqueue_many=True,
+                min_after_dequeue=0,
+                num_threads=16,
+                seed=self.seed,
+                allow_smaller_final_batch=True,
+            )
+
+            def _pre_process(x):
+                x = tf.pad(x, [[4, 4], [4, 4], [0, 0]])
+                x = tf.random_crop(x, [32, 32, 3], seed=self.seed)
+                x = tf.image.random_flip_left_right(x, seed=self.seed)
+                if self.data_format == "NCHW":
+                x = tf.transpose(x, [2, 0, 1])
+
+                return x
+
+            if shuffle:
+                x_valid_shuffle = tf.map_fn(
+                    _pre_process, x_valid_shuffle, back_prop=False)
+
+        logits = self._model(x_valid_shuffle, False, reuse=True)
+        valid_shuffle_preds = tf.argmax(logits, axis=1)
+        valid_shuffle_preds = tf.to_int32(valid_shuffle_preds)
+        self.valid_shuffle_acc = tf.equal(valid_shuffle_preds, y_valid_shuffle)
+        self.valid_shuffle_acc = tf.to_int32(self.valid_shuffle_acc)
+        self.valid_shuffle_acc = tf.reduce_sum(self.valid_shuffle_acc)
+        self.cur_valid_acc = tf.to_float(
+            self.valid_shuffle_acc) / tf.to_float(self.batch_size)
 
     def build_model(self):
 
