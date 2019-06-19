@@ -73,7 +73,7 @@ def get_controller_ops(controller_model):
         "valid_acc": controller_model.valid_acc,
         "optimizer": controller_model.optimizer,
         "baseline": controller_model.baseline,
-        "entropy": controller_model.cur_sample_entropy,
+        "entropy": controller_model.sample_entropy,
         "sample_arc": controller_model.sample_arc,
         "skip_rate": controller_model.skip_rate,
     }
