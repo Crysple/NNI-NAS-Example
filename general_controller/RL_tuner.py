@@ -3,6 +3,8 @@ from __future__ import division
 from __future__ import print_function
 
 import logging
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
 import tensorflow as tf
 import nni
 from nni.tuner import Tuner
