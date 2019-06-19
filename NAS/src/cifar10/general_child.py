@@ -172,8 +172,10 @@ class GeneralChild(Model):
                         inp_h = inputs.get_shape()[2].value
                         inp_w = inputs.get_shape()[3].value
                         out.set_shape([None, out_filters, inp_h, inp_w])
-                    if optional_inputs:
+                    try:
                         out = tf.add_n([out, tf.reduce_sum(optional_inputs, axis=0)])
+                    except Exception as e:
+                        print(e)
                     out = batch_norm(out, is_training,
                                      data_format=self.data_format)
                 layers.append(out)

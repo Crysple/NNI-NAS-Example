@@ -112,7 +112,7 @@ class RLTuner(MultiPhaseTuner):
         self.pos = 0
 
     def generate_parameters(self, parameter_id, trial_job_id=None):
-        current_arc_code = self.get_controller_arc_macro(1)
+        current_arc_code = self.sess.run(self.controller_model.sample_arc)
         start_idx = 0
         current_config = {
             self.choice_key: 'train' if self.pos < self.child_steps else 'validate'
@@ -182,7 +182,7 @@ class RLTuner(MultiPhaseTuner):
         choice_key = list(
             filter(lambda k: k.strip().endswith('choice'), list(data)))
         if len(choice_key) > 0:
-            self.choice_key = choice_key
+            self.choice_key = choice_key[0]
             data.pop(choice_key[0])
         # Sort layers and generate search space
         self.search_space = []

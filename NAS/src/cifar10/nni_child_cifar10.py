@@ -132,7 +132,7 @@ class NASTrial():
 
     def run(self, num):
         for _ in range(num):
-            """@nni.get_next_parameter(tf, self.sess)"""
+            """@nni.get_next_parameter(self.sess)"""
             """@nni.variable(nni.choice('train', 'validate'), name=entry)"""
             entry = 'trian'
             if entry == 'train':
@@ -160,7 +160,7 @@ def main(_):
     logger.debug("-" * 80)
     trial = NASTrial()
 
-    trial.run(400*FLAG.num_epochs)
+    trial.run(400*FLAGS.num_epochs)
 
 
 if __name__ == "__main__":
