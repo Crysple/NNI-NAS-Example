@@ -448,7 +448,7 @@ class GeneralChild(Model):
                 x = tf.random_crop(x, [32, 32, 3], seed=self.seed)
                 x = tf.image.random_flip_left_right(x, seed=self.seed)
                 if self.data_format == "NCHW":
-                x = tf.transpose(x, [2, 0, 1])
+                    x = tf.transpose(x, [2, 0, 1])
 
                 return x
 
