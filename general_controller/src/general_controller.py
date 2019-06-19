@@ -189,13 +189,13 @@ class GeneralController():
                         start = tf.multinomial(logit, 1)
                         start = tf.to_int32(start)
                         start = tf.reshape(start, [1])
-						arc_seq.append(start)
-						log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(
-						logits=logit, labels=start)
-						log_probs.append(log_prob)
-						entropy = tf.stop_gradient(log_prob * tf.exp(-log_prob))
-						entropys.append(entropy)
-						inputs = tf.nn.embedding_lookup(self.w_emb["start"][branch_id], start)
+                        arc_seq.append(start)
+                        log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                        logits=logit, labels=start)
+                        log_probs.append(log_prob)
+                        entropy = tf.stop_gradient(log_prob * tf.exp(-log_prob))
+                        entropys.append(entropy)
+                        inputs = tf.nn.embedding_lookup(self.w_emb["start"][branch_id], start)
 
                         next_c, next_h = stack_lstm(
                             inputs, prev_c, prev_h, self.w_lstm)
@@ -270,43 +270,43 @@ class GeneralController():
                 anchors_w_1.append(tf.matmul(next_h[-1], self.w_attn_1))
 
             arc_seq = tf.concat(arc_seq, axis=0)
-			self.sample_arc = tf.reshape(arc_seq, [-1])
+            self.sample_arc = tf.reshape(arc_seq, [-1])
 
-			entropys = tf.stack(entropys)
-			self.sample_entropy = tf.reduce_sum(entropys)
+            entropys = tf.stack(entropys)
+            self.sample_entropy = tf.reduce_sum(entropys)
 
-			log_probs = tf.stack(log_probs)
-			self.sample_log_prob = tf.reduce_sum(log_probs)
+            log_probs = tf.stack(log_probs)
+            self.sample_log_prob = tf.reduce_sum(log_probs)
 
-			skip_count = tf.stack(skip_count)
-			self.skip_count = tf.reduce_sum(skip_count)
+            skip_count = tf.stack(skip_count)
+            self.skip_count = tf.reduce_sum(skip_count)
 
-			skip_penaltys = tf.stack(skip_penaltys)
-			self.skip_penaltys = tf.reduce_mean(skip_penaltys)
+            skip_penaltys = tf.stack(skip_penaltys)
+            self.skip_penaltys = tf.reduce_mean(skip_penaltys)
 
     def build_trainer(self):
-		self.valid_acc = tf.placeholder(dtype=tf.float32, shape=[])
-		# self.valid_acc = child_model.cur_valid_acc
-		# self.shuffle_valid_acc = tf.placeholder(dtype=tf.float32,shape=[])
-		self.reward = self.valid_acc
+        self.valid_acc = tf.placeholder(dtype=tf.float32, shape=[])
+        # self.valid_acc = child_model.cur_valid_acc
+        # self.shuffle_valid_acc = tf.placeholder(dtype=tf.float32,shape=[])
+        self.reward = self.valid_acc
 
-		normalize = tf.to_float(self.num_layers * (self.num_layers - 1) / 2)
-		self.skip_rate = tf.to_float(self.skip_count) / normalize
+        normalize = tf.to_float(self.num_layers * (self.num_layers - 1) / 2)
+        self.skip_rate = tf.to_float(self.skip_count) / normalize
 
-		if self.entropy_weight is not None:
-			self.reward += self.entropy_weight * self.sample_entropy
+        if self.entropy_weight is not None:
+            self.reward += self.entropy_weight * self.sample_entropy
 
-		self.sample_log_prob = tf.reduce_sum(self.sample_log_prob)
-		self.baseline = tf.Variable(0.0, dtype=tf.float32, trainable=False)
-		baseline_update = tf.assign_sub(
-			self.baseline, (1 - self.bl_dec) * (self.baseline - self.reward))
+        self.sample_log_prob = tf.reduce_sum(self.sample_log_prob)
+        self.baseline = tf.Variable(0.0, dtype=tf.float32, trainable=False)
+        baseline_update = tf.assign_sub(
+            self.baseline, (1 - self.bl_dec) * (self.baseline - self.reward))
 
-		with tf.control_dependencies([baseline_update]):
-			self.reward = tf.identity(self.reward)
+        with tf.control_dependencies([baseline_update]):
+            self.reward = tf.identity(self.reward)
 
-		self.loss = self.sample_log_prob * (self.reward - self.baseline)
-		if self.skip_weight is not None:
-			self.loss += self.skip_weight * self.skip_penaltys
+        self.loss = self.sample_log_prob * (self.reward - self.baseline)
+        if self.skip_weight is not None:
+            self.loss += self.skip_weight * self.skip_penaltys
 
         self.train_step = tf.Variable(
             0, dtype=tf.int32, trainable=False, name="train_step")
