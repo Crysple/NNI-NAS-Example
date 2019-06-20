@@ -82,7 +82,7 @@ def get_child_ops(child_model):
 class NASTrial():
 
     def __init__(self):
-        images, labels = read_data(FLAGS.data_path, num_valids=0)
+        images, labels = read_data(FLAGS.data_path)
 
         self.output_dir = os.path.join(os.getenv('NNI_OUTPUT_DIR'), '../..')
         self.file_path = os.path.join(
