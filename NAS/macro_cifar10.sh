@@ -10,7 +10,7 @@ python3 src/cifar10/nni_child_cifar10.py \
   --output_dir="outputs" \
   --train_data_size=45000 \
   --batch_size=100 \
-  --num_epochs=30 \
+  --num_epochs=301 \
   --log_every=50 \
   --eval_every_epochs=1 \
   --child_use_aux_heads \
