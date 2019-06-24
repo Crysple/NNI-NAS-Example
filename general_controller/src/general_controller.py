@@ -293,7 +293,7 @@ class GeneralController():
 
     def build_trainer(self):
         self.valid_acc = tf.placeholder(dtype=tf.float32, shape=[])
-        mask = tf.placeholder(dtype=tf.bool, shape=[self.batch_size])
+        self.mask = tf.placeholder(dtype=tf.bool, shape=[self.batch_size])
         self.cur_sample_entropy = tf.boolean_mask(
             self.sample_entropy, mask)[0]
         self.cur_sample_log_prob = tf.boolean_mask(
