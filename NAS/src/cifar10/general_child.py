@@ -421,7 +421,7 @@ class GeneralChild(Model):
         self.test_acc = tf.reduce_sum(self.test_acc)
 
     # override
-    def build_valid_rl(self, shuffle=False):
+    def _build_valid_rl(self, shuffle=False):
         print("-" * 80)
         print("Build valid graph on shuffled data")
         with tf.device("/cpu:0"):
