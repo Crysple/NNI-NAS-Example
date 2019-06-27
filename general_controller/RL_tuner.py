@@ -8,7 +8,7 @@ os.environ['CUDA_VISIBLE_DEVICES']=''
 import tensorflow as tf
 import nni
 from src.utils import Logger
-from nni.multi_phase.multi_phase_tuner import MultiPhaseTuner
+from nni.tuner import Tuner
 from src.general_controller import GeneralController
 from src.tf_flags import *
 from collections import OrderedDict
@@ -81,7 +81,7 @@ def get_controller_ops(controller_model):
     return controller_ops
 
 
-class RLTuner(MultiPhaseTuner):
+class RLTuner(Tuner):
 
     def __init__(self, child_steps, controller_steps):
 
