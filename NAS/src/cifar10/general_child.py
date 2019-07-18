@@ -158,27 +158,6 @@ class GeneralChild(Model):
                         pooled_layers.append(x)
                     return pooled_layers, out_filters
 
-            def post_process_out(out, optional_inputs):
-                '''Form skip connection and perform batch norm'''
-                with tf.variable_scope("skip"):
-                    inputs = layers[-1]
-                    if self.data_format == "NHWC":
-                        inp_h = inputs.get_shape()[1].value
-                        inp_w = inputs.get_shape()[2].value
-                        inp_c = inputs.get_shape()[3].value
-                        out.set_shape([None, inp_h, inp_w, out_filters])
-                    elif self.data_format == "NCHW":
-                        inp_c = inputs.get_shape()[1].value
-                        inp_h = inputs.get_shape()[2].value
-                        inp_w = inputs.get_shape()[3].value
-                        out.set_shape([None, out_filters, inp_h, inp_w])
-                    optional_inputs.append(out)
-                    pout = tf.add_n(optional_inputs)
-                    out = batch_norm(pout, is_training,
-                                     data_format=self.data_format)
-                layers.append(out)
-                return out
-
             global layer_id
             layer_id = -1
 
@@ -187,80 +166,57 @@ class GeneralChild(Model):
                 layer_id += 1
                 return 'layer_' + str(layer_id)
 
-            def conv3(inputs):
+            def conv(inputs, size, separable=False):
                 # res_layers is pre_layers that are chosen to form skip connection
                 # layers[-1] is always the latest input
                 with tf.variable_scope(get_layer_id()):
-                    with tf.variable_scope('branch_0'):
+                    with tf.variable_scope('conv_'+str(size)+('_separable' if separable else '')):
+                        concat_axis = 3 if self.data_format == "NHWC" else 1
+                        concated_inputs = tf.concat(inputs[1], concat_axis)
                         out = conv_op(
-                            inputs[0][0], 3, is_training, out_filters, out_filters, self.data_format, start_idx=None)
-                    out = post_process_out(out, inputs[1])
+                            concated_inputs, size, is_training, out_filters, out_filters, self.data_format, start_idx=None, separable=separable)
+                    with tf.variable_scope("skip"):
+                        out = batch_norm(out, is_training, data_format=self.data_format)
+                layers.append(out)
                 return out
 
-            def conv3_sep(inputs):
+            def pool(inputs, ptype):
+                assert ptype in ['avg', 'max'], "pooling type must be avg or max"
                 with tf.variable_scope(get_layer_id()):
-                    with tf.variable_scope('branch_1'):
-                        out = conv_op(
-                            inputs[0][0], 3, is_training, out_filters, out_filters, self.data_format, start_idx=None, separable=True)
-                    out = post_process_out(out, inputs[1])
-                return out
-
-            def conv5(inputs):
-                with tf.variable_scope(get_layer_id()):
-                    with tf.variable_scope('branch_2'):
-                        out = conv_op(
-                            inputs[0][0], 5, is_training, out_filters, out_filters, self.data_format, start_idx=None)
-                    out = post_process_out(out, inputs[1])
-                return out
-
-            def conv5_sep(inputs):
-                with tf.variable_scope(get_layer_id()):
-                    with tf.variable_scope('branch_3'):
-                        out = conv_op(
-                            inputs[0][0], 5, is_training, out_filters, out_filters, self.data_format, start_idx=None, separable=True)
-                    out = post_process_out(out, inputs[1])
-                return out
-
-            def avg_pool(inputs):
-                with tf.variable_scope(get_layer_id()):
-                    with tf.variable_scope('branch_4'):
+                    with tf.variable_scope('pooling_'+str(ptype)):
+                        concat_axis = 3 if self.data_format == "NHWC" else 1
+                        inputs = tf.concat(inputs[1], concat_axis)
                         out = pool_op(
-                            inputs[0][0], is_training, out_filters, out_filters, "avg", self.data_format, start_idx=None)
-                    out = post_process_out(out, inputs[1])
-                return out
-
-            def max_pool(inputs):
-                with tf.variable_scope(get_layer_id()):
-                    with tf.variable_scope('branch_5'):
-                        out = pool_op(
-                            inputs[0][0], is_training, out_filters, out_filters, "max", self.data_format, start_idx=None)
-                    out = post_process_out(out, inputs[1])
+                            inputs, is_training, out_filters, out_filters, ptype, self.data_format, start_idx=None)
+                    with tf.variable_scope("skip"):
+                        out = batch_norm(out, is_training, data_format=self.data_format)
+                layers.append(out)
                 return out
 
             """@nni.mutable_layers(
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
-                fixed_inputs:[x],
-                optional_inputs: [],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                fixed_inputs:[],
+                optional_inputs: [x],
                 optional_input_size: 1,
                 layer_output: layer_0_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_0_out],
                 optional_inputs: [layer_0_out],
                 optional_input_size: 1,
                 layer_output: layer_1_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_1_out],
                 optional_inputs: [layer_0_out, layer_1_out],
                 optional_input_size: 1,
                 layer_output: layer_2_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_2_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out],
                 optional_input_size: 1,
@@ -272,28 +228,28 @@ class GeneralChild(Model):
             layer_0_out, layer_1_out, layer_2_out, layer_3_out = layers[-4:]
             """@nni.mutable_layers(
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_3_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out],
                 optional_input_size: 1,
                 layer_output: layer_4_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_4_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out],
                 optional_input_size: 1,
                 layer_output: layer_5_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_5_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out],
                 optional_input_size: 1,
                 layer_output: layer_6_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_6_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out],
                 optional_input_size: 1,
@@ -306,28 +262,28 @@ class GeneralChild(Model):
                 -8:]
             """@nni.mutable_layers(
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_7_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out],
                 optional_input_size: 1,
                 layer_output: layer_8_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_8_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out, layer_8_out],
                 optional_input_size: 1,
                 layer_output: layer_9_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_9_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out, layer_8_out, layer_9_out],
                 optional_input_size: 1,
                 layer_output: layer_10_out
             },
             {
-                layer_choice: [conv3(), conv3_sep(), conv5(), conv5_sep(), avg_pool(), max_pool()],
+                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_10_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out, layer_8_out, layer_9_out, layer_10_out],
                 optional_input_size: 1,

@@ -71,7 +71,7 @@ def conv_op(inputs, filter_size, is_training, count, out_filters,
                     x, is_training, data_format=data_format)
             else:
                 w = create_weight(
-                    "w", [filter_size, filter_size, inp_c, count])
+                    "w", [filter_size, filter_size, out_filters, count])
                 x = tf.nn.conv2d(
                     x, w, [1, 1, 1, 1], "SAME", data_format=data_format)
                 x = batch_norm(
