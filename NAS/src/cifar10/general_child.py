@@ -195,28 +195,28 @@ class GeneralChild(Model):
 
             """@nni.mutable_layers(
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[],
                 optional_inputs: [x],
                 optional_input_size: 1,
                 layer_output: layer_0_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_0_out],
                 optional_inputs: [layer_0_out],
                 optional_input_size: 1,
                 layer_output: layer_1_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_1_out],
                 optional_inputs: [layer_0_out, layer_1_out],
                 optional_input_size: 1,
                 layer_output: layer_2_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_2_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out],
                 optional_input_size: 1,
@@ -228,28 +228,28 @@ class GeneralChild(Model):
             layer_0_out, layer_1_out, layer_2_out, layer_3_out = layers[-4:]
             """@nni.mutable_layers(
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_3_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out],
                 optional_input_size: 1,
                 layer_output: layer_4_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_4_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out],
                 optional_input_size: 1,
                 layer_output: layer_5_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_5_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out],
                 optional_input_size: 1,
                 layer_output: layer_6_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_6_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out],
                 optional_input_size: 1,
@@ -262,28 +262,28 @@ class GeneralChild(Model):
                 -8:]
             """@nni.mutable_layers(
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_7_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out],
                 optional_input_size: 1,
                 layer_output: layer_8_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_8_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out, layer_8_out],
                 optional_input_size: 1,
                 layer_output: layer_9_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs: [layer_9_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out, layer_8_out, layer_9_out],
                 optional_input_size: 1,
                 layer_output: layer_10_out
             },
             {
-                layer_choice: [conv(size=3), conv3_sep(size=3, separable=True), conv5(size=5), conv5_sep(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
+                layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
                 fixed_inputs:[layer_10_out],
                 optional_inputs: [layer_0_out, layer_1_out, layer_2_out, layer_3_out, layer_4_out, layer_5_out, layer_6_out, layer_7_out, layer_8_out, layer_9_out, layer_10_out],
                 optional_input_size: 1,
