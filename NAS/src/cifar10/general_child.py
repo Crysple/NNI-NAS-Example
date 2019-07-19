@@ -193,8 +193,6 @@ class GeneralChild(Model):
                 # layers[-1] is always the latest input
                 with tf.variable_scope(get_layer_id()):
                     with tf.variable_scope('conv_'+str(size)+('_separable' if separable else '')):
-                        concat_axis = 3 if self.data_format == "NHWC" else 1
-                        inputs = tf.concat(inputs[1], concat_axis)
                         out = conv_op(
                             inputs[0], size, is_training, out_filters, out_filters, self.data_format, start_idx=None, separable=separable)
                     out = post_process_out(out, inputs[1])
@@ -205,8 +203,6 @@ class GeneralChild(Model):
                 assert ptype in ['avg', 'max'], "pooling type must be avg or max"
                 with tf.variable_scope(get_layer_id()):
                     with tf.variable_scope('pooling_'+str(ptype)):
-                        concat_axis = 3 if self.data_format == "NHWC" else 1
-                        inputs = tf.concat(inputs[1], concat_axis)
                         out = pool_op(
                             inputs[0], is_training, out_filters, out_filters, ptype, self.data_format, start_idx=None)
                     out = post_process_out(out, inputs[1])
