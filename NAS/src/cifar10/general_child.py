@@ -194,7 +194,7 @@ class GeneralChild(Model):
                 with tf.variable_scope(get_layer_id()):
                     with tf.variable_scope('conv_'+str(size)+('_separable' if separable else '')):
                         out = conv_op(
-                            inputs[0], size, is_training, out_filters, out_filters, self.data_format, start_idx=None, separable=separable)
+                            inputs[0][0], size, is_training, out_filters, out_filters, self.data_format, start_idx=None, separable=separable)
                     out = post_process_out(out, inputs[1])
                 layers.append(out)
                 return out
@@ -204,7 +204,7 @@ class GeneralChild(Model):
                 with tf.variable_scope(get_layer_id()):
                     with tf.variable_scope('pooling_'+str(ptype)):
                         out = pool_op(
-                            inputs[0], is_training, out_filters, out_filters, ptype, self.data_format, start_idx=None)
+                            inputs[0][0], is_training, out_filters, out_filters, ptype, self.data_format, start_idx=None)
                     out = post_process_out(out, inputs[1])
                 layers.append(out)
                 return out
