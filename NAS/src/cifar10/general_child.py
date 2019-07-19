@@ -216,8 +216,8 @@ class GeneralChild(Model):
             """@nni.mutable_layers(
             {
                 layer_choice: [conv(size=3), conv(size=3, separable=True), conv(size=5), conv(size=5, separable=True), pool(ptype='avg'), pool(ptype='max')],
-                fixed_inputs:[],
-                optional_inputs: [x],
+                fixed_inputs:[x],
+                optional_inputs: [],
                 optional_input_size: 1,
                 layer_output: layer_0_out
             },
