@@ -85,8 +85,6 @@ class NASTrial():
         images, labels = read_data(FLAGS.data_path, num_valids=0)
 
         self.output_dir = os.path.join(os.getenv('NNI_OUTPUT_DIR'), '../..')
-        self.file_path = os.path.join(
-            self.output_dir, 'trainable_variable.txt')
 
         self.graph = tf.Graph()
         with self.graph.as_default():
@@ -131,6 +129,7 @@ class NASTrial():
         max_acc = 0
         while True:
             _, global_step = self.run_one_step()
+            '''@nni.get_next_parameter(self.sess, self.loss, None, tf)'''
             if global_step % self.child_ops['num_train_batches'] == 0:
                 acc = self.child_ops["eval_func"](
                     self.sess, "test", self.child_model)
