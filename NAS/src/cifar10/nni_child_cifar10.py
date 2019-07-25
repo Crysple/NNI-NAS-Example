@@ -129,7 +129,7 @@ class NASTrial():
         max_acc = 0
         while True:
             _, global_step = self.run_one_step()
-            '''@nni.get_next_parameter(self.sess, self.child_model.loss, None, tf)'''
+            '''@nni.training_update(tf, self.sess, self.child_model.loss, None)'''
             if global_step % self.child_ops['num_train_batches'] == 0:
                 acc = self.child_ops["eval_func"](
                     self.sess, "test", self.child_model)
