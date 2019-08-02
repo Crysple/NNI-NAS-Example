@@ -295,12 +295,12 @@ class GeneralController():
         self.valid_acc = tf.placeholder(dtype=tf.float32, shape=[])
         self.mask = tf.placeholder(dtype=tf.bool, shape=[self.batch_size])
         self.cur_sample_entropy = tf.boolean_mask(
-            self.sample_entropy, mask)[0]
+            self.sample_entropy, self.mask)[0]
         self.cur_sample_log_prob = tf.boolean_mask(
-            self.sample_log_prob, mask)[0]
-        self.cur_skip_count = tf.boolean_mask(self.skip_count, mask)[0]
+            self.sample_log_prob, self.mask)[0]
+        self.cur_skip_count = tf.boolean_mask(self.skip_count, self.mask)[0]
         self.cur_skip_penaltys = tf.boolean_mask(
-            self.skip_penaltys, mask)[0]
+            self.skip_penaltys, self.mask)[0]
 
         reward = self.valid_acc
 
