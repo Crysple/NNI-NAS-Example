@@ -236,7 +236,7 @@ class RLTuner(Tuner):
             data.pop(choice_key[0])
         # Sort layers and generate search space
         self.search_space = []
-        data = {k: v['_value'] for k, v in data}
+        data = {k: v['_value'] for k, v in data.items()}
         data = OrderedDict(
             sorted(data.items(), key=lambda tp: int(tp[0].split('_')[-1])))
         for block_id, layers in data.items():
