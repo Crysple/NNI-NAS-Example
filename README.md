@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is an example of running NAS on [NNI](https://github.com/microsoft/nni) using NNI's NAS interface. The documents about NNI's NAS interface can be found [here](https://github.com/microsoft/nni/blob/master/docs/en_US/GeneralNasInterfaces.md).
+This is an example of running NAS on [NNI](https://github.com/microsoft/nni) using NNI's NAS interface. The documents about NNI's NAS interface can be found [here](https://github.com/microsoft/nni/blob/v1.2/docs/en_US/AdvancedFeature/GeneralNasInterfaces.md).
 
 ## Step
 
