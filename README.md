@@ -10,7 +10,6 @@ This is an example of running NAS on [NNI](https://github.com/microsoft/nni) usi
 
 - ```python3 -m pip install --upgrade nni```
 
-[More information](https://github.com/microsoft/nni/blob/master/docs/en_US/Installation.md)
 
 > 2. RUN NAS
 
